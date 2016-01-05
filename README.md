@@ -10,8 +10,8 @@ sudo easy_install pip
 Le librerie necessarie al funzionamento dello script devono essere tutte installate eseguendo il seguente comando:
 sudo pip install ––upgrade nome-libreria
 ecco di seguito la lista di librerie
-beautifulsoup4
-html5lib
-simplejson
+- beautifulsoup4
+- html5lib
+- simplejson
 
 # Necessario installare transmission daemon
