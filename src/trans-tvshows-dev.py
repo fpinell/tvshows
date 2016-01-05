@@ -15,7 +15,7 @@ import time
 import operator
 import logging 
 import transmissionrpc 
-
+import datetime
 import smtplib
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
@@ -24,11 +24,11 @@ from email.MIMEText import MIMEText
 def sender(username,password,toaddress,email_text):
         fromaddr = username
         toaddrs  = toaddress
-
+        now = datetime.datetime.now()
         msg = MIMEMultipart()
         msg['From'] = fromaddr
         msg['To'] = toaddrs
-        msg['Subject'] = "Tv shows["+sname+"]"
+        msg['Subject'] = "Tv shows [ " + now.strftime('%Y/%m/%d') + " ]"
         msg.attach(MIMEText(email_text, 'plain'))
 
         text = msg.as_string()
@@ -635,4 +635,5 @@ if client != "":
 		logging.info(str(len(seriesindown.keys())) + " TORRENTS IN DOWNLOAD" )
 		time.sleep(600)
 logging.info("NO MORE TORRENTS IN DOWNLOAD") 
+print username,password,username,email_text
 sender(username, password, username, email_text)
