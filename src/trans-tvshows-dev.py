@@ -629,10 +629,10 @@ if client != "":
 						completed[s].append(t)
 						if len(seriesindown[s]) == 0:
 							listofepisodes = getlistofepisodes(completed[s])
-							sender(username, password, username, email_text)
 							rename(completed[s][0].dirsname)
 							completed.pop(s)
 							seriesindown.pop(s)
 		logging.info(str(len(seriesindown.keys())) + " TORRENTS IN DOWNLOAD" )
 		time.sleep(600)
 logging.info("NO MORE TORRENTS IN DOWNLOAD") 
+sender(username, password, username, email_text)
