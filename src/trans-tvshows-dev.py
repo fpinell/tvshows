@@ -527,6 +527,7 @@ with open(configfile,"r") as f:
 						logging.error("PROBLEM DOWNLOADING SUBS " + str(e.message) )
 						email_text += "PROBLEM DOWNLOADING SUBS " + str(e.message) + "\n"
 						pass					
+				toupdate[sname] = [lastseason,lastepisode,str(0)]
 				try:			
 					toDownloadlow,toDownloadhigh,forupdateseason,forupdateepisode = eztvquery(conn, headers, sname, lastseason, lastepisode)
 					where = destdir +"/"+sname
