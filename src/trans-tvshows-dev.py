@@ -477,6 +477,7 @@ elif client == "trans":
 			transmission_client.remove_torrent(transmission_client.list().keys())
 	except Exception,e:
 		logging.error('Client transmission error')
+		os.system("sudo service transmission-daemon restart")
 logging.info("Begin " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 email_text = "Begin " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + "\n"
 
