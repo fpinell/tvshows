@@ -471,10 +471,12 @@ if client != "" and client == "aria":
 elif client == "trans": 
 	launch_transmission()
 	time.sleep(5)
-	transmission_client = transmissionrpc.Client(address='localhost', port=9091, http_handler=None, timeout=None, user='transmission', password='transmission')
-	if len(transmission_client.list().keys()) > 0:
-		transmission_client.remove_torrent(transmission_client.list().keys())
-
+	try:
+		transmission_client = transmissionrpc.Client(address='localhost', port=9091, http_handler=None, timeout=None, user='transmission', password='transmission')
+		if len(transmission_client.list().keys()) > 0:
+			transmission_client.remove_torrent(transmission_client.list().keys())
+	except Exception,e:
+		logging.error('Client transmission error')
 logging.info("Begin " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
 email_text = "Begin " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + "\n"
 
@@ -497,6 +499,7 @@ numberofsubs = 0
 
 with open(configfile,"r") as f:
 	for l in f:
+		print l
 		l=l.strip()
 		if destdir == "":
 			destdir=l.strip()
