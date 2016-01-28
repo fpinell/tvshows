@@ -373,49 +373,40 @@ def stopplex():
 
 def eztvquery(conn,headers,sname,lastseason,lastepisode):
 	SearchString = database[sname]
+	# logging.info(SearchString)
 	params = urllib.urlencode({'SearchString1': '', 'SearchString': SearchString, 'search':'Search'})
-	length = 3
-	while length != 5:
-		req = conn.request("POST", "/search/",params, headers=headers)
-		logging.info(sname)
-		res = conn.getresponse()
-		data = res.read()
-		soup = BeautifulSoup(data,"html5lib")	
-		length = len(soup.find_all("table", {"class" : "forum_header_border"}))
-		#print length
-	tab = soup.find_all("table", {"class" : "forum_header_border"})[4]
+	req = conn.request("POST", "/search/",params, headers=headers)
+	res = conn.getresponse()
+	data = res.read()
+	soup = BeautifulSoup(data,"html5lib")
+
+	magnets = soup.find_all("a", {"class" : "magnet"})
 	toDownloadlow = {}
 	toDownloadhigh = {}
 	
 	listofepisodes = []
 	listofepisodes.append((lastseason,lastepisode))
 
-	for row in tab.find_all('tr')[2:]:
-		cells = row.find_all('td')
-		
-		if len(cells) == 6:
-			name = cells[1].findAll('a')[0].contents[0]
-			m = re.search(r"(?P<season>S[0-9]+|[0-9]+x)(?P<episode>E[0-9]+|[0-9]+)",name)
-			check = 0 
-			if m != None:
-				currEpisode, currSeason = episodeseason(m.group('episode'),m.group('season'))
-				# print currEpisode, currSeason
-				listofepisodes.append((currSeason,currEpisode))
-				check = comparison(lastepisode, lastseason, currEpisode, currSeason)
+	logging.info(str( len(magnets)))
+	for m in magnets:
+		reg = re.search(r"(?P<season>S[0-9]+|[0-9]+x)(?P<episode>E[0-9]+|[0-9]+)",m['title'])
+		check = 0 
+		if reg != None:
+			currEpisode, currSeason = episodeseason(reg.group('episode'),reg.group('season'))
+			# logging.info(str(currEpisode)+ ' ' + str(currSeason))
+			listofepisodes.append((currSeason,currEpisode))
+			check = comparison(lastepisode, lastseason, currEpisode, currSeason)
 			if check:
-				links = cells[2]
-				magnet = ""
-				if len(links.findAll('a',{'class':'magnet'}, href=True)) > 0:
-				  magnet = links.findAll('a',{'class':'magnet'}, href=True)[0]['href']
-				  downkey = str(currSeason)+","+str(currEpisode)
-				  #print magnet
+				magnet = m['href']
+				downkey = str(currSeason)+","+str(currEpisode)
+				#print magnet
 				if magnet != "":
-				  if "720p" in name:
-				    toDownloadhigh[downkey] = magnet
-				  else:
-				    toDownloadlow[downkey] = magnet
+					if "720p" in m:
+						toDownloadhigh[downkey] = magnet
+					else:
+						toDownloadlow[downkey] = magnet
 				else: 
-				  print "magnet not found", currEpisode,currSeason,sname
+				  logging.info( "magnet not found " + currEpisode + ' ' + currSeason+ ' ' + sname)
 			else:
 				continue
 	listofepisodes = sorted(listofepisodes, key=operator.itemgetter(0, 1), reverse = True)
