@@ -17,6 +17,7 @@ import logging
 import transmissionrpc 
 import datetime
 import smtplib
+import urllib2
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 
@@ -43,58 +44,43 @@ def sender(username,password,toaddress,email_text):
         server.sendmail(fromaddr, toaddrs, text)
         server.quit()
         
-def new_subs (name_serie,season,episode,language,destdir):
-  
-  name_serie = name_serie.replace(' ','+')
-  
-  params = {'keywords': name_serie, 'movie_type': 'tv-series', 'language':language,'year':'', 'seasons':season, 'episodes':episode}
+def new_subs (show,season,episode,language,destdir):
+  count = 0 
+  data = {}
+  data["keywords"] = show
+  data["seasons"] = season
+  data["episodes"] = episode
+  data["output_format"]="json"
+  url = "https://www.podnapisi.net/subtitles/search/?"+urllib.urlencode(data)
+  req = urllib2.Request(url)
+  res = urllib2.urlopen(req)
+  j = json.loads(res.read())
+  slug = j["data"][0]["slug"]
+  id_show = j["data"][0]["id"]
+  data = {}
+  data["keywords"] = show
+  data["seasons"] = season
+  data["episodes"] = episode
 
-  urllib.urlencode(params)
+  url = "https://www.podnapisi.net/subtitles/search/"+slug+"/"+id_show+'?'+urllib.urlencode(data)
+  req = urllib2.Request(url)
+  res = urllib2.urlopen(req)
+  sub_page = res.read()
 
-  conn = httplib.HTTPConnection("www.podnapisi.net")
-
-  headers = {'X-Requested-With': 'XMLHttpRequest', 'Content-Type':'text/html; charset=utf-8'}
-
-  url = "/subtitles/search/advanced?" 
-  for k in params:
-    url += k+"="+params[k] + "&"
-  #print url
-
-  req = conn.request("GET", url, headers=headers)
-
-  res = conn.getresponse()
-  # print res.status, res.msg
-  try:
-    data = res.read()
-    
-  except httplib.IncompleteRead, e :
-    print e.partial
-
-  soup = BeautifulSoup(data.decode('utf-8'),"html5lib") 
-  soup.decode(pretty_print=False, eventual_encoding="UTF-8", formatter='minimal')
-  entries = soup.find_all('tr',{'class':'subtitle-entry'})
-  check_file = 0
-  i_link = 0
-  count = 0
-  if len(entries) > 0:
-    while check_file != 1:
-      url_link = entries[i_link].get('data-href')+'/download'
-      req = conn.request('GET', url_link,headers=headers)
-      res = conn.getresponse()
-      data = res.read()
-    
-      with open("temp.zip", "wb") as code:
-		code.write(data)
-      fh = open('temp.zip', 'rb')
-      if zipfile.is_zipfile(fh):
-		zf = zipfile.ZipFile(fh,"r")
-		check_file = 1
-		retval = os.getcwd()
-		os.chdir(destdir)
-		count += 1
-		zf.extractall(path=".", members=None, pwd=None)
-		os.chdir(retval)
-		i_link += 1
+  soup = BeautifulSoup(sub_page,"html5lib")
+  links = soup.findAll('tr',{'class':'subtitle-entry'})
+  if len(links) > 0:
+	  table = soup.find('table',{'class':'table table-striped table-hover'})
+	  languages = table.find_all('abbr',{'class':True})
+	  url = "https://www.podnapisi.net"+links[0]['data-href']+'/download'
+	  req = urllib2.Request(url)
+	  res = urllib2.urlopen(req)
+	  count += 1
+	  file_page = res.read()
+	  with open("temp.zip", "w") as code:
+	      code.write(file_page)
+	  zf = zipfile.ZipFile("temp.zip")
+	  zf.extractall()
   logging.info( 'Subs found ' + str( count ) )
   return count
 
@@ -528,7 +514,8 @@ with open(configfile,"r") as f:
 					where = destdir +"/"+sname
 					dirsname = sname
 					numberofdownloads += len(toDownloadlow.keys())
-					
+					logging.info("LEN LOW " + str(toDownloadlow.keys()))
+					logging.info("LEN HIGH" + str(toDownloadhigh.keys()))
 					if len(toDownloadlow.keys()) > 0: 
 						# print "low quality dowloading", "client: ", client
 						for e in sorted(toDownloadlow.keys()):
@@ -569,7 +556,7 @@ with open(configfile,"r") as f:
 								torrents.append(t)
 								#t.start()
 								#seriesindown[sname].append(t)
-								logging.info("Adding: " + sname + " S" + s + " E" + ep + " 720p")
+								logging.info("Adding HIGH: " + sname + " S" + s + " E" + ep + " 720p")
 								
 								# aria = server.aria2.addUri([toDownloadlow[e]], {"dir":dirsname,"bt-metadata-only":"false"})
 							# if sname == "Newsroom (2012)":
