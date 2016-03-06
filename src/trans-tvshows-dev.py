@@ -58,7 +58,7 @@ def new_subs(show, season, episode, language, destdir):
     req = urllib2.Request(url)
     res = urllib2.urlopen(req)
     j = json.loads(res.read())
-    if data in j:
+    if "data" in j:
         if len(j["data"]) > 0:
             slug = j["data"][0]["slug"]
             id_show = j["data"][0]["id"]
