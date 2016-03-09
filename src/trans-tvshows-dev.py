@@ -83,16 +83,18 @@ def new_subs(show, season, episode, language, destdir):
                     links[0]['data-href'] + '/download'
                 req = urllib2.Request(url)
                 res = urllib2.urlopen(req)
-                count += 1
                 file_page = res.read()
                 with open("temp.zip", "w") as code:
                     code.write(file_page)
-                zf = zipfile.ZipFile("temp.zip")
-                retval = os.getcwd()
-                os.chdir(destdir)
-                count += 1
-                zf.extractall(path=".", members=None, pwd=None)
-                os.chdir(retval)
+                fh = open('temp.zip', 'rb')
+                if zipfile.is_zipfile(fh):
+                    zf = zipfile.ZipFile(fh, "r")
+                    retval = os.getcwd()
+                    os.chdir(destdir)
+                    count += 1
+                    zf.extractall(path=".", members=None, pwd=None)
+                    os.chdir(retval)
+
     logging.info('Subs found ' + str(count))
     return count
 
@@ -151,133 +153,6 @@ def rename(path):
         else:
             logging.info("******Rinomina il file:" + e + " ************")
         os.chdir(".")
-
-
-def subtitles(sname, season, episode, destdir, language):
-    languages = {"en": "subtitles", "it": "sottotitoli"}
-    conn = httplib.HTTPConnection("www.podnapisi.net")
-
-    headers = {'X-Requested-With': 'XMLHttpRequest',
-               'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}
-
-    decode = {}
-    decode['output'] = []
-    temptatives = 0
-    tmpsname = sname
-    while len(decode['output']) == 0 and temptatives < 10:
-        if sname == 'Americans (2013)':
-            tmpsname = 'The Americans'
-
-        seasonname = "[\"" + tmpsname + "\",-1]"
-        params = urllib.urlencode(
-            {'rpcParams': seasonname, 'notificationTimestamp': 1385427964})
-        req = conn.request("POST", "/ppodnapisi/suggestions/",
-                           params, headers=headers)
-
-        res = conn.getresponse()
-        print res.status, res.msg
-
-        data = res.read()
-        decode = json.loads(data)
-        tmpsname = str(tmpsname.split(' ')[:-1])
-        temptatives += 1
-
-    if temptatives < 10:
-        if sname != 'Vikings (US)' and sname != 'Americans (2013)':
-            sM = decode['output'][0]['omdb_id']
-            title = decode['output'][0]['title'].replace(' ', '+')
-        else:
-            print sname, len(decode['output'])
-            sM = decode['output'][1]['omdb_id']
-            title = decode['output'][1]['title'].replace(' ', '+')
-    # search?sT=1&sM=442223&sK=Homeland&sTS=3&sTE=9
-
-        search = "/en/ppodnapisi/search?sT=1&sM=" + \
-            str(sM) + "&sK=" + title + "&sTS=" + season + "&sTE=" + episode
-        req = conn.request("GET", search)
-
-        res = conn.getresponse()
-
-        data = res.read()
-    # print data
-
-        soup = BeautifulSoup(data.decode('utf-8'), "html5lib")
-        soup.decode(pretty_print=False, eventual_encoding="UTF-8",
-                    formatter='minimal')
-
-        pages = soup.findAll('span', {'class': "pages"})
-
-        linklastpage = pages[-1].findAll('a', href=True)
-        if len(linklastpage) > 1:
-            if linklastpage[-1] != None:
-
-                req = conn.request(
-                    "GET", linklastpage[-1]['href'].encode('utf-8'))
-                res = conn.getresponse()
-                data = res.read()
-                soup = BeautifulSoup(data.decode('utf-8'), "html5lib")
-                soup.decode(pretty_print=False,
-                            eventual_encoding="UTF-8", formatter='minimal')
-
-        tabula = soup.find("table", {"class": "list first_column_title"})
-        count = 0
-        subslist = []
-        for row in tabula.findAll('tr'):
-            for divs in row.findAll('td'):
-
-                for l in divs.findAll('div', {"class": "list_div2"}):
-
-                    for ls in l.findAll('a', href=True):
-
-                        if languages[language] in ls['href'].encode('utf-8'):
-                            req = conn.request(
-                                "GET", ls['href'].encode('utf-8'))
-                            res = conn.getresponse()
-                            soup2 = BeautifulSoup(
-                                res.read().decode('utf-8'), "html5lib")
-                            # print soup2
-                            down = soup2.find_all(
-                                'a', {"class": "button big download"})[0]
-
-                            # print 'ref', down['href']
-                            test = down['href'].split('/')
-                            test[3] = 'download'
-                            link = ""
-                            for t in test[1:]:
-                                link += "/" + t
-                            headers = {'X-Requested-With': 'XMLHttpRequest',
-                                       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'Accept-Encoding': 'gzip'}
-                            req = conn.request("GET", link)
-                            # req = conn.request("GET", down['href'])
-                            res = conn.getresponse()
-                            data = res.read()
-                            # print "data",data
-                            req = conn.request("GET", data)
-                            # req = conn.request("GET", down['href'])
-                            res = conn.getresponse()
-                            data = res.read()
-                            subslist.append(data)
-
-        if len(subslist) > 0:
-            with open("temp.zip", "wb") as code:
-                code.write(subslist[-1])
-            code.close()
-            fh = open('temp.zip', 'rb')
-            zf = zipfile.ZipFile(fh, "r")
-            retval = os.getcwd()
-            os.chdir(destdir)
-
-            zf.extractall(path=".", members=None, pwd=None)
-            os.chdir(retval)
-            count += 1
-            # print "Download subtitles for " + sname + " S" + season + " E" +
-            # episode
-    else:
-        logging.info("Name not available in podnapisi")
-        count = 0
-    conn.close()
-    print 'Subs found ', count
-    return count
 
 
 def comparison(lastepisode, lastseason, currentepisode, currentseason):
@@ -529,7 +404,6 @@ numberofsubs = 0
 
 with open(configfile, "r") as f:
     for l in f:
-        print l
         l = l.strip()
         if destdir == "":
             destdir = l.strip()
@@ -686,5 +560,5 @@ if client != "":
         logging.info(str(len(seriesindown.keys())) + " TORRENTS IN DOWNLOAD")
         time.sleep(600)
 logging.info("NO MORE TORRENTS IN DOWNLOAD")
-print username, password, username, email_text
+# print username, password, username, email_text
 sender(username, password, username, email_text)
