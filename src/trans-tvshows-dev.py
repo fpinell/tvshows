@@ -286,7 +286,7 @@ def eztvquery(conn, headers, sname, lastseason, lastepisode):
     listofepisodes = []
     listofepisodes.append((lastseason, lastepisode))
 
-    logging.info(str(len(magnets)))
+    # logging.info(str(len(magnets)))
     for m in magnets:
         reg = re.search(
             r"(?P<season>S[0-9]+|[0-9]+x)(?P<episode>E[0-9]+|[0-9]+)", m['title'])
@@ -444,8 +444,8 @@ with open(configfile, "r") as f:
                     where = destdir + "/" + sname
                     dirsname = sname
                     numberofdownloads += len(toDownloadlow.keys())
-                    logging.info("LEN LOW " + str(toDownloadlow.keys()))
-                    logging.info("LEN HIGH" + str(toDownloadhigh.keys()))
+                    # logging.info("LEN LOW " + str(toDownloadlow.keys()))
+                    # logging.info("LEN HIGH" + str(toDownloadhigh.keys()))
                     if len(toDownloadlow.keys()) > 0:
                         # print "low quality dowloading", "client: ", client
                         for e in sorted(toDownloadlow.keys()):
