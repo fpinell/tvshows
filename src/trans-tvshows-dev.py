@@ -89,8 +89,10 @@ def new_subs(show, season, episode, language, destdir):
                 fh = open('temp.zip', 'rb')
                 if zipfile.is_zipfile(fh):
                     zf = zipfile.ZipFile(fh, "r")
+                    logging.info(str(zf.namelist()))
                     retval = os.getcwd()
                     os.chdir(destdir)
+                    logging.info(str(zf.namelist()) + ' ' + destdir)
                     count += 1
                     zf.extractall(path=".", members=None, pwd=None)
                     os.chdir(retval)
