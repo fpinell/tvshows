@@ -273,7 +273,7 @@ def stopplex():
 
 def eztvquery(conn, headers, sname, lastseason, lastepisode):
     SearchString = database[sname]
-    logging.info('searchstring '+ SearchString)
+    # logging.info('searchstring '+ SearchString)
     url = "/search/?q1=&q2="+SearchString+"&search=Search"
 
     req = conn.request("GET", url, headers=headers)
@@ -515,7 +515,7 @@ with open(configfile, "r") as f:
                     email_text += "EZTV QUERY FAILED " + str(e.message) + "\n"
                     pass
 
-logging.info(str(len(torrents)) + ' ' + str(torrents))
+# logging.info(str(len(torrents)) + ' ' + str(torrents))
 
 for t in torrents:
     t.start()
