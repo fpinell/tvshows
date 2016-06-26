@@ -273,10 +273,10 @@ def stopplex():
 
 def eztvquery(conn, headers, sname, lastseason, lastepisode):
     SearchString = database[sname]
-    # logging.info(SearchString)
-    params = urllib.urlencode(
-        {'SearchString1': '', 'SearchString': SearchString, 'search': 'Search'})
-    req = conn.request("POST", "/search/", params, headers=headers)
+    logging.info('searchstring '+ SearchString)
+    url = "/search/?q1=&q2="+SearchString+"&search=Search"
+
+    req = conn.request("GET", url, headers=headers)
     res = conn.getresponse()
     data = res.read()
     soup = BeautifulSoup(data, "html5lib")
@@ -514,6 +514,9 @@ with open(configfile, "r") as f:
                     logging.error("EZTV QUERY FAILED " + str(e.message))
                     email_text += "EZTV QUERY FAILED " + str(e.message) + "\n"
                     pass
+
+logging.info(str(len(torrents)) + ' ' + str(torrents))
+
 for t in torrents:
     t.start()
     seriesindown[t.sname].append(t)
