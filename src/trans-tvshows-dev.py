@@ -21,7 +21,7 @@ import smtplib
 import urllib2
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
-
+import traceback
 
 def sender(username, password, toaddress, email_text):
     fromaddr = username
@@ -276,51 +276,55 @@ def eztvquery(conn, headers, sname, lastseason, lastepisode):
     # logging.info('searchstring '+ SearchString)
     url = "/search/?q1=&q2="+SearchString+"&search=Search"
 
-    req = conn.request("GET", url, headers=headers)
-    res = conn.getresponse()
-    data = res.read()
-    soup = BeautifulSoup(data, "html5lib")
+    try: 
 
-    magnets = soup.find_all("a", {"class": "magnet"})
-    toDownloadlow = {}
-    toDownloadhigh = {}
+	    req = conn.request("GET", url, headers=headers)
+	    res = conn.getresponse()
+	    data = res.read()
+	    soup = BeautifulSoup(data, "html5lib")
 
-    listofepisodes = []
-    listofepisodes.append((lastseason, lastepisode))
+	    magnets = soup.find_all("a", {"class": "magnet"})
+	    toDownloadlow = {}
+	    toDownloadhigh = {}
 
-    # logging.info(str(len(magnets)))
-    for m in magnets:
-        reg = re.search(
-            r"(?P<season>S[0-9]+|[0-9]+x)(?P<episode>E[0-9]+|[0-9]+)", m['title'])
-        check = 0
-        if reg != None:
-            currEpisode, currSeason = episodeseason(
-                reg.group('episode'), reg.group('season'))
-            # logging.info(str(currEpisode)+ ' ' + str(currSeason))
-            listofepisodes.append((currSeason, currEpisode))
-            check = comparison(lastepisode, lastseason,
-                               currEpisode, currSeason)
-            if check:
-                magnet = m['href']
-                downkey = str(currSeason) + "," + str(currEpisode)
-                # print magnet
-                if magnet != "":
-                    if "720p" in m:
-                        toDownloadhigh[downkey] = magnet
-                    else:
-                        toDownloadlow[downkey] = magnet
-                else:
-                    logging.info("magnet not found " +
-                                 currEpisode + ' ' + currSeason + ' ' + sname)
-            else:
-                continue
-    listofepisodes = sorted(
-        listofepisodes, key=operator.itemgetter(0, 1), reverse=True)
-    forupdateseason = listofepisodes[0][0]
-    forupdateepisode = listofepisodes[0][1]
+	    listofepisodes = []
+	    listofepisodes.append((lastseason, lastepisode))
 
-    return toDownloadlow, toDownloadhigh, forupdateseason, forupdateepisode
+	    # logging.info(str(len(magnets)))
+	    for m in magnets:
+	        reg = re.search(
+	            r"(?P<season>S[0-9]+|[0-9]+x)(?P<episode>E[0-9]+|[0-9]+)", m['title'])
+	        check = 0
+	        if reg != None:
+	            currEpisode, currSeason = episodeseason(
+	                reg.group('episode'), reg.group('season'))
+	            # logging.info(str(currEpisode)+ ' ' + str(currSeason))
+	            listofepisodes.append((currSeason, currEpisode))
+	            check = comparison(lastepisode, lastseason,
+	                               currEpisode, currSeason)
+	            if check:
+	                magnet = m['href']
+	                downkey = str(currSeason) + "," + str(currEpisode)
+	                # print magnet
+	                if magnet != "":
+	                    if "720p" in m:
+	                        toDownloadhigh[downkey] = magnet
+	                    else:
+	                        toDownloadlow[downkey] = magnet
+	                else:
+	                    logging.info("magnet not found " +
+	                                 currEpisode + ' ' + currSeason + ' ' + sname)
+	            else:
+	                continue
+	    listofepisodes = sorted(
+	        listofepisodes, key=operator.itemgetter(0, 1), reverse=True)
+	    forupdateseason = listofepisodes[0][0]
+	    forupdateepisode = listofepisodes[0][1]
 
+	    return toDownloadlow, toDownloadhigh, forupdateseason, forupdateepisode
+	except Exception,e:
+		logging.error("INTO eztvquery " + e.message + " " + traceback.print_exc())
+		pass
 
 def launch_transmission():
     ps = subprocess.Popen(
@@ -511,8 +515,8 @@ with open(configfile, "r") as f:
                     toupdate[sname] = [forupdateseason,
                                        forupdateepisode, str(subs)]
                 except Exception, e:
-                    logging.error("EZTV QUERY FAILED " + str(e.message))
-                    email_text += "EZTV QUERY FAILED " + str(e.message) + "\n"
+                    logging.error("EZTV QUERY FAILED " + str(e.message) + " " + traceback.print_exc())
+                    email_text += "EZTV QUERY FAILED " + str(e.message) + " " + traceback.print_exc()+ "\n"
                     pass
 
 # logging.info(str(len(torrents)) + ' ' + str(torrents))
