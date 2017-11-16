@@ -323,7 +323,7 @@ def eztvquery(conn, headers, sname, lastseason, lastepisode):
 
 	    return toDownloadlow, toDownloadhigh, forupdateseason, forupdateepisode
 	except Exception,e:
-		logging.error("INTO eztvquery " + e.message + " " + traceback.print_exc())
+		logging.error("INTO eztvquery " + traceback.print_exc())
 		pass
 
 def launch_transmission():
@@ -439,9 +439,9 @@ with open(configfile, "r") as f:
                         os.chdir(workdir)
                     except Exception, e:
                         logging.error(
-                            "PROBLEM DOWNLOADING SUBS " + str(e.message))
+                            "PROBLEM DOWNLOADING SUBS " + str(traceback.print_exc()))
                         email_text += "PROBLEM DOWNLOADING SUBS " + \
-                            str(e.message) + "\n"
+                            str(traceback.print_exc()) + "\n"
                         pass
                 toupdate[sname] = [lastseason, lastepisode, str(0)]
                 try:
@@ -515,8 +515,8 @@ with open(configfile, "r") as f:
                     toupdate[sname] = [forupdateseason,
                                        forupdateepisode, str(subs)]
                 except Exception, e:
-                    logging.error("EZTV QUERY FAILED " + str(e.message) + " " + traceback.print_exc())
-                    email_text += "EZTV QUERY FAILED " + str(e.message) + " " + traceback.print_exc()+ "\n"
+                    logging.error("EZTV QUERY FAILED " + " " + traceback.print_exc())
+                    email_text += "EZTV QUERY FAILED " + " " + traceback.print_exc()+ "\n"
                     pass
 
 # logging.info(str(len(torrents)) + ' ' + str(torrents))
