@@ -11,6 +11,6 @@ data = res.read()
 
 j = json.loads(data.strip().split("=")[-1].replace(";$(document).ready(function(){$(\".tv-show-search-select\").select2({data:data});});",""))
 
-with open("../support/db.txt","w") as fout:
+with open("../support/new_db.txt","w") as fout:
     for s in j:
         fout.write(s["id"]+","+unidecode.unidecode(s["text"])+"\n")
