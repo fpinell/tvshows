@@ -513,7 +513,13 @@ with open(configfile, "r") as f:
 							# 	subs = subtitles(tmpsname, s, ep,where,language)
 							# else:
 							##################### comment to be removed #######
-							subs = new_subs(sname, s, ep, language, where)
+							subs = 0
+							try:
+								subs = new_subs(sname, s, ep, language, where)
+							except Exception,e:
+								logging.error("Downloading subs " + str(traceback.print_exc()))
+								pass
+
 							numberofsubs += subs
 					toupdate[sname] = [forupdateseason,
 									   forupdateepisode, str(subs)]
@@ -570,7 +576,7 @@ if client != "":
 							completed.pop(s)
 							seriesindown.pop(s)
 		logging.info(str(len(seriesindown.keys())) + " TORRENTS IN DOWNLOAD")
-		time.sleep(600)
+		time.sleep(60)
 logging.info("NO MORE TORRENTS IN DOWNLOAD")
 # print username, password, username, email_text
 sender(username, password, username, email_text)
