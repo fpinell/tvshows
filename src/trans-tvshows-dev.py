@@ -53,53 +53,56 @@ def new_subs(show, season, episode, language, destdir):
 	data["seasons"] = season
 	data["episodes"] = episode
 	data["output_format"] = "json"
-	url = "https://www.podnapisi.net/subtitles/search/?" + \
-		urllib.urlencode(data)
-	req = urllib2.Request(url)
-	res = urllib2.urlopen(req)
-	j = json.loads(res.read())
-	if "data" in j:
-		if len(j["data"]) > 0:
-			slug = j["data"][0]["slug"]
-			id_show = j["data"][0]["id"]
-			data = {}
-			data["keywords"] = show
-			data["seasons"] = season
-			data["episodes"] = episode
+	try: 
+		url = "https://www.podnapisi.net/subtitles/search/?" + \
+			urllib.urlencode(data)
+		req = urllib2.Request(url)
+		res = urllib2.urlopen(req)
+		j = json.loads(res.read())
+		if "data" in j:
+			if len(j["data"]) > 0:
+				slug = j["data"][0]["slug"]
+				id_show = j["data"][0]["id"]
+				data = {}
+				data["keywords"] = show
+				data["seasons"] = season
+				data["episodes"] = episode
 
-			url = "https://www.podnapisi.net/subtitles/search/" + \
-				slug + "/" + id_show + '?' + urllib.urlencode(data)
-			req = urllib2.Request(url)
-			res = urllib2.urlopen(req)
-			sub_page = res.read()
-
-			soup = BeautifulSoup(sub_page, "html5lib")
-			links = soup.findAll('tr', {'class': 'subtitle-entry'})
-			if len(links) > 0:
-				table = soup.find(
-					'table', {'class': 'table table-striped table-hover'})
-				languages = table.find_all('abbr', {'class': True})
-				url = "https://www.podnapisi.net" + \
-					links[0]['data-href'] + '/download'
+				url = "https://www.podnapisi.net/subtitles/search/" + \
+					slug + "/" + id_show + '?' + urllib.urlencode(data)
 				req = urllib2.Request(url)
 				res = urllib2.urlopen(req)
-				file_page = res.read()
-				with open("temp.zip", "w") as code:
-					code.write(file_page)
-				fh = open('temp.zip', 'rb')
-				if zipfile.is_zipfile(fh):
-					zf = zipfile.ZipFile(fh, "r")
-					logging.info(str(zf.namelist()))
-					retval = os.getcwd()
-					os.chdir(destdir)
-					logging.info(str(zf.namelist()) + ' ' + destdir)
-					count += 1
-					zf.extractall(path=".", members=None, pwd=None)
-					os.chdir(retval)
+				sub_page = res.read()
 
-	logging.info('Subs found ' + str(count))
-	return count
+				soup = BeautifulSoup(sub_page, "html5lib")
+				links = soup.findAll('tr', {'class': 'subtitle-entry'})
+				if len(links) > 0:
+					table = soup.find(
+						'table', {'class': 'table table-striped table-hover'})
+					languages = table.find_all('abbr', {'class': True})
+					url = "https://www.podnapisi.net" + \
+						links[0]['data-href'] + '/download'
+					req = urllib2.Request(url)
+					res = urllib2.urlopen(req)
+					file_page = res.read()
+					with open("temp.zip", "w") as code:
+						code.write(file_page)
+					fh = open('temp.zip', 'rb')
+					if zipfile.is_zipfile(fh):
+						zf = zipfile.ZipFile(fh, "r")
+						logging.info(str(zf.namelist()))
+						retval = os.getcwd()
+						os.chdir(destdir)
+						logging.info(str(zf.namelist()) + ' ' + destdir)
+						count += 1
+						zf.extractall(path=".", members=None, pwd=None)
+						os.chdir(retval)
 
+		logging.info('Subs found ' + str(count))
+		return count
+	except Exception,e:
+		logging.error("Error downloding the subs " + traceback.print_exc())
+		pass
 
 def consinstency(number):
 	if "x" in number:
