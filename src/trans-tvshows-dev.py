@@ -101,7 +101,7 @@ def new_subs(show, season, episode, language, destdir):
 		logging.info('Subs found ' + str(count))
 		return count
 	except Exception,e:
-		logging.error("Error downloding the subs " + traceback.print_exc())
+		logging.error("Error downloding the subs " + str(traceback.print_exc()))
 		pass
 
 def consinstency(number):
@@ -421,11 +421,22 @@ with open(configfile, "r") as f:
 				username, password = l.split(',')
 			else:
 				numberofseries += 1
-				sname, tmplastseason, tmplastepisode, tmpsubs = l.split(',')
+				logging.info("reading line: " + l)
+				tmpsubs = 0
+				tmplastseason = 0 
+				tmplastepisode = 0
+				try:
+					sname, tmplastseason, tmplastepisode, tmpsubs = l.strip().split(',')
+				except Exception:
+					logging.error("SOME PROBLEM READING THE CONFIG FILE " + l)
+					pass
 				lastseason = int(tmplastseason)
 				lastepisode = int(tmplastepisode)
 				# print sname,lastseason,lastepisode
-				subs = int(tmpsubs)
+				subs = 0 
+				if tmpsubs != 'None':
+					logging.info("Value for tmpsubs " + tmpsubs)
+					subs = int(tmpsubs)
 				if subs == 0:
 					# dirsname = sname.replace("(","\(")
 					# dirsname = dirsname.replace(")","\)")
@@ -436,7 +447,9 @@ with open(configfile, "r") as f:
 						subs = new_subs(sname, str(lastseason), str(
 							lastepisode), language, where)
 						##################### comment to be removed ###########
-						numberofsubs += subs
+						numberofsubs = 0
+						if subs is not None:
+							numberofsubs += subs
 						if subs != 0:
 							rename(where)
 						os.chdir(workdir)
@@ -486,7 +499,9 @@ with open(configfile, "r") as f:
 								email_text += "Adding: " + sname + " S" + s + " E" + ep + "\n"
 							##################### comment to be removed #######
 							subs = new_subs(sname, s, e, language, where)
-							numberofsubs += subs
+							numberofsubs = 0 
+							if subs is not None:
+								numberofsubs += subs
 
 					elif len(toDownloadhigh.keys()) > 0 and client != "":
 						for e in sorted(toDownloadhigh.keys()):
