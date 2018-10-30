@@ -271,7 +271,7 @@ def eztvquery(conn, headers, sname, lastseason, lastepisode):
 	SearchString = database[sname]
 	# logging.info('searchstring '+ SearchString)
 	url = "/search/?q1=&q2="+SearchString+"&search=Search"
-
+	logging.info("eztv_query: " + url)
 	try: 
 
 		req = conn.request("GET", url, headers=headers)
@@ -286,7 +286,7 @@ def eztvquery(conn, headers, sname, lastseason, lastepisode):
 		listofepisodes = []
 		listofepisodes.append((lastseason, lastepisode))
 
-		# logging.info(str(len(magnets)))
+		logging.info("n. of magnet links " + str(len(magnets)))
 		for m in magnets:
 			reg = re.search(
 				r"(?P<season>S[0-9]+|[0-9]+x)(?P<episode>E[0-9]+|[0-9]+)", m['title'])
@@ -294,7 +294,7 @@ def eztvquery(conn, headers, sname, lastseason, lastepisode):
 			if reg != None:
 				currEpisode, currSeason = episodeseason(
 					reg.group('episode'), reg.group('season'))
-				# logging.info(str(currEpisode)+ ' ' + str(currSeason))
+				#logging.info(str(currEpisode)+ ' ' + str(currSeason))
 				listofepisodes.append((currSeason, currEpisode))
 				check = comparison(lastepisode, lastseason,
 								   currEpisode, currSeason)
@@ -394,7 +394,7 @@ for l in db:
 	value, key = l.split(',')[:2]
 	database[key] = value
 db.close()
-conn = httplib.HTTPSConnection("eztv.ag")
+conn = httplib.HTTPSConnection("eztv.re")
 
 headers = {'X-Requested-With': 'XMLHttpRequest',
 		   'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}
