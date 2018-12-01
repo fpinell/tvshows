@@ -394,7 +394,7 @@ for l in db:
 	value, key = l.split(',')[:2]
 	database[key] = value
 db.close()
-conn = httplib.HTTPSConnection("eztv.re")
+conn = httplib.HTTPSConnection("eztv.io")
 
 headers = {'X-Requested-With': 'XMLHttpRequest',
 		   'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}
