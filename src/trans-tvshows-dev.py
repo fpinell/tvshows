@@ -22,6 +22,8 @@ import urllib2
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 import traceback
+import requests
+
 
 def sender(username, password, toaddress, email_text):
 	fromaddr = username
@@ -267,17 +269,17 @@ def stopplex():
 	return 0
 
 
-def eztvquery(conn, headers, sname, lastseason, lastepisode):
+def eztvquery(sname, lastseason, lastepisode):
 	SearchString = database[sname]
 	# logging.info('searchstring '+ SearchString)
+	eztv_url = 'https://eztv.io/'
+
 	url = "/search/?q1=&q2="+SearchString+"&search=Search"
-	logging.info("eztv_query: " + url)
+	logging.info("eztv_query: " +eztv_url+url)
 	try: 
 
-		req = conn.request("GET", url, headers=headers)
-		res = conn.getresponse()
-		data = res.read()
-		soup = BeautifulSoup(data, "html5lib")
+		request = requests.request('GET',eztv_url+url)
+		soup = BeautifulSoup(request.content, "html5lib")
 
 		magnets = soup.find_all("a", {"class": "magnet"})
 		toDownloadlow = {}
@@ -394,10 +396,7 @@ for l in db:
 	value, key = l.split(',')[:2]
 	database[key] = value
 db.close()
-conn = httplib.HTTPSConnection("eztv-ag.unblocksites.club/")
 
-headers = {'X-Requested-With': 'XMLHttpRequest',
-		   'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}
 toupdate = {}
 destdir = ""
 numberofseries = 0
@@ -455,7 +454,7 @@ with open(configfile, "r") as f:
 				toupdate[sname] = [lastseason, lastepisode, str(0)]
 				try:
 					toDownloadlow, toDownloadhigh, forupdateseason, forupdateepisode = eztvquery(
-						conn, headers, sname, lastseason, lastepisode)
+						sname, lastseason, lastepisode)
 					where = destdir + "/" + sname
 					dirsname = sname
 					numberofdownloads += len(toDownloadlow.keys())
@@ -549,7 +548,6 @@ for serie in sorted(toupdate.keys()):
 			  str(toupdate[serie][1]) + "," + toupdate[serie][2] + "\n")
 out.write(username + "," + password)
 out.close()
-conn.close()
 logging.info("Report:")
 logging.info("- Serie controllate: " + str(numberofseries))
 logging.info("- Episodi scaricati: " + str(numberofdownloads))
