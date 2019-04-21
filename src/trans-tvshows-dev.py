@@ -278,7 +278,7 @@ def eztvquery(sname, lastseason, lastepisode):
 	logging.info("eztv_query: " +eztv_url+url)
 	try: 
 
-		request = requests.request('GET',eztv_url+url)
+		request = requests.get(eztv_url+url)
 		soup = BeautifulSoup(request.content, "html5lib")
 
 		magnets = soup.find_all("a", {"class": "magnet"})
